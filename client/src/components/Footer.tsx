@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="mt-12 border-t bg-gray-50">
+    <footer className="mt-12 bg-gray-50">
       <div className="container py-8 text-sm text-gray-600">
         <div className="flex flex-wrap gap-4">
           <button className="hover:text-black">회사소개</button>

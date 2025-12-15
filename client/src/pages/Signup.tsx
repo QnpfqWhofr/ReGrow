@@ -168,75 +168,135 @@ export default function Signup() {
     "인증 완료"
   ];
 
+  const stepDescriptions = [
+    "서비스 이용을 위한 약관에 동의해주세요",
+    "사용하실 계정 정보를 입력해주세요",
+    "이메일 인증을 진행해주세요",
+    "인증코드를 입력하고 가입을 완료하세요"
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-4xl">
-        <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+    <div className="relative flex items-center justify-center min-h-screen px-4 py-8 overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50">
+      {/* 배경 데코레이션 */}
+      <div className="absolute top-0 right-0 rounded-full w-96 h-96 bg-gradient-to-br from-emerald-200/30 to-teal-200/30 blur-3xl -z-10"></div>
+      <div className="absolute bottom-0 left-0 rounded-full w-96 h-96 bg-gradient-to-tr from-green-200/30 to-cyan-200/30 blur-3xl -z-10"></div>
+
+      <div className="w-full max-w-6xl">
+        <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100/50 overflow-hidden backdrop-blur-sm">
           <div className="grid lg:grid-cols-5">
             {/* 왼쪽 사이드바 - 진행 상황 */}
-            <div className="lg:col-span-2 bg-gradient-to-br from-green-400 via-green-500 to-green-600 p-8 lg:p-12">
-              <div className="space-y-8">
+            <div className="relative p-8 overflow-hidden lg:col-span-2 bg-gradient-to-br from-emerald-500 via-green-500 to-teal-600 lg:p-12">
+              {/* 배경 패턴 */}
+              <div className="absolute inset-0 opacity-10">
+                <div className="absolute top-0 left-0 w-32 h-32 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full"></div>
+                <div className="absolute bottom-0 right-0 w-40 h-40 translate-x-1/2 translate-y-1/2 bg-white rounded-full"></div>
+              </div>
+
+              <div className="relative space-y-10">
                 <div className="text-center lg:text-left">
-                  <img src={ML} alt='ReGrow' className="h-16 mx-auto lg:mx-0 mb-6" />
-                  <h1 className="text-3xl font-bold text-white mb-4">
+                  <img 
+                    src={ML} 
+                    alt='ReGrow' 
+                    className="h-20 mx-auto mb-6 transition-transform duration-500 lg:mx-0 drop-shadow-2xl hover:scale-110" 
+                  />
+                  <h1 className="mb-4 text-4xl font-extrabold leading-tight text-white drop-shadow-lg">
                     ReGrow와 함께
                     <br />
-                    시작하세요
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-emerald-100">
+                      시작하세요
+                    </span>
                   </h1>
-                  <p className="text-green-100 text-lg">
+                  <p className="text-lg leading-relaxed text-emerald-50">
                     지속가능한 중고거래의 새로운 경험
                   </p>
                 </div>
 
                 {/* 진행 단계 */}
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {stepTitles.map((title, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                        index <= step 
-                          ? "bg-white text-green-600" 
-                          : "bg-white/20 text-white/60"
+                    <div key={index} className="flex items-center gap-4 group">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-300 ${
+                        index < step 
+                          ? "bg-white text-emerald-600 shadow-lg scale-110" 
+                          : index === step
+                          ? "bg-white text-emerald-600 shadow-xl scale-110 ring-4 ring-white/30"
+                          : "bg-white/20 text-white/60 backdrop-blur-sm"
                       }`}>
-                        {index < step ? "✓" : index + 1}
+                        {index < step ? (
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          index + 1
+                        )}
                       </div>
-                      <span className={`font-medium transition-all ${
-                        index <= step ? "text-white" : "text-white/60"
-                      }`}>
-                        {title}
-                      </span>
+                      <div className="flex-1">
+                        <span className={`font-semibold text-base transition-all duration-300 block ${
+                          index <= step ? "text-white" : "text-white/60"
+                        }`}>
+                          {title}
+                        </span>
+                        {index === step && (
+                          <span className="block mt-1 text-xs text-emerald-100">
+                            진행 중
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="pt-8 space-y-4">
-                  <div className="flex items-center gap-3 text-white/90">
-                    <span className="text-xl">🌱</span>
-                    <span className="text-sm">친환경 중고거래</span>
+                {/* 진행률 바 */}
+                <div className="pt-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-white/90">진행률</span>
+                    <span className="text-sm font-bold text-white">{Math.round((step / 3) * 100)}%</span>
                   </div>
-                  <div className="flex items-center gap-3 text-white/90">
-                    <span className="text-xl">🔒</span>
-                    <span className="text-sm">안전한 거래 보장</span>
+                  <div className="w-full h-3 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm">
+                    <div 
+                      className="h-full transition-all duration-500 rounded-full shadow-lg bg-gradient-to-r from-white to-emerald-100"
+                      style={{ width: `${(step / 3) * 100}%` }}
+                    ></div>
                   </div>
-                  <div className="flex items-center gap-3 text-white/90">
-                    <span className="text-xl">⚡</span>
-                    <span className="text-sm">빠른 거래 매칭</span>
+                </div>
+
+                {/* 특징 */}
+                <div className="pt-6 space-y-4 border-t border-white/20">
+                  <div className="flex items-center gap-3 transition-transform duration-300 text-white/90 hover:translate-x-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
+                      <span className="text-xl">🌱</span>
+                    </div>
+                    <span className="text-sm font-medium">친환경 중고거래</span>
+                  </div>
+                  <div className="flex items-center gap-3 transition-transform duration-300 text-white/90 hover:translate-x-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
+                      <span className="text-xl">🔒</span>
+                    </div>
+                    <span className="text-sm font-medium">안전한 거래 보장</span>
+                  </div>
+                  <div className="flex items-center gap-3 transition-transform duration-300 text-white/90 hover:translate-x-2">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
+                      <span className="text-xl">⚡</span>
+                    </div>
+                    <span className="text-sm font-medium">빠른 거래 매칭</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* 오른쪽 폼 영역 */}
-            <div className="lg:col-span-3 p-8 lg:p-12">
+            <div className="p-8 lg:col-span-3 lg:p-12">
               <div className="max-w-md mx-auto">
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {/* 헤더 */}
+                <div className="mb-10">
+                  <div className="inline-block px-4 py-2 mb-4 text-sm font-semibold rounded-full text-emerald-600 bg-emerald-50">
+                    Step {step + 1} of 4
+                  </div>
+                  <h2 className="mb-3 text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-700">
                     {stepTitles[step]}
                   </h2>
-                  <p className="text-gray-600">
-                    {step === 0 && "서비스 이용을 위한 약관에 동의해주세요"}
-                    {step === 1 && "사용하실 계정 정보를 입력해주세요"}
-                    {step === 2 && "이메일 인증을 진행해주세요"}
-                    {step === 3 && "인증코드를 입력하고 가입을 완료하세요"}
+                  <p className="text-base leading-relaxed text-gray-600">
+                    {stepDescriptions[step]}
                   </p>
                 </div>
 
@@ -250,56 +310,65 @@ export default function Signup() {
                     className="space-y-6"
                   >
                     <div className="space-y-4">
-                      <label className="flex items-start gap-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors">
+                      <label className="flex items-start gap-4 p-5 transition-all duration-200 border-2 border-gray-200 cursor-pointer rounded-2xl hover:bg-emerald-50/50 hover:border-emerald-300 group">
                         <input
                           type="checkbox"
-                          className="w-5 h-5 mt-0.5 text-green-600 rounded focus:ring-green-500"
+                          className="w-6 h-6 mt-0.5 text-emerald-600 rounded-lg focus:ring-emerald-500 focus:ring-2 cursor-pointer"
                           checked={agreeAll}
                           onChange={(e) => setAgreeAll(e.target.checked)}
                         />
-                        <div>
-                          <div className="font-semibold text-gray-900">전체 동의</div>
+                        <div className="flex-1">
+                          <div className="mb-1 text-lg font-bold text-gray-900">전체 동의</div>
                           <div className="text-sm text-gray-600">모든 약관에 동의합니다</div>
                         </div>
+                        <svg className="w-6 h-6 text-gray-400 transition-colors group-hover:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                       </label>
 
-                      <div className="space-y-3 pl-4 border-l-2 border-gray-100">
-                        <label className="flex items-start gap-3 cursor-pointer">
+                      <div className="pl-6 space-y-3 border-l-4 border-emerald-100">
+                        <label className="flex items-start gap-3 py-2 cursor-pointer group">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 mt-1 text-green-600 rounded focus:ring-green-500"
+                            className="w-5 h-5 mt-0.5 text-emerald-600 rounded focus:ring-emerald-500 focus:ring-2 cursor-pointer"
                             checked={agreeAge}
                             onChange={(e) => setAgreeAge(e.target.checked)}
                           />
                           <div className="flex-1">
-                            <span className="text-gray-900">만 14세 이상입니다</span>
-                            <span className="text-red-500 ml-1">(필수)</span>
+                            <span className="font-medium text-gray-900 transition-colors group-hover:text-emerald-600">
+                              만 14세 이상입니다
+                            </span>
+                            <span className="ml-1 font-semibold text-red-500">(필수)</span>
                           </div>
                         </label>
 
-                        <label className="flex items-start gap-3 cursor-pointer">
+                        <label className="flex items-start gap-3 py-2 cursor-pointer group">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 mt-1 text-green-600 rounded focus:ring-green-500"
+                            className="w-5 h-5 mt-0.5 text-emerald-600 rounded focus:ring-emerald-500 focus:ring-2 cursor-pointer"
                             checked={agreePrivacy}
                             onChange={(e) => setAgreePrivacy(e.target.checked)}
                           />
                           <div className="flex-1">
-                            <span className="text-gray-900">개인정보 처리방침 동의</span>
-                            <span className="text-red-500 ml-1">(필수)</span>
+                            <span className="font-medium text-gray-900 transition-colors group-hover:text-emerald-600">
+                              개인정보 처리방침 동의
+                            </span>
+                            <span className="ml-1 font-semibold text-red-500">(필수)</span>
                           </div>
                         </label>
 
-                        <label className="flex items-start gap-3 cursor-pointer">
+                        <label className="flex items-start gap-3 py-2 cursor-pointer group">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 mt-1 text-green-600 rounded focus:ring-green-500"
+                            className="w-5 h-5 mt-0.5 text-emerald-600 rounded focus:ring-emerald-500 focus:ring-2 cursor-pointer"
                             checked={agreeAds}
                             onChange={(e) => setAgreeAds(e.target.checked)}
                           />
                           <div className="flex-1">
-                            <span className="text-gray-900">마케팅 정보 수신 동의</span>
-                            <span className="text-gray-500 ml-1">(선택)</span>
+                            <span className="font-medium text-gray-900 transition-colors group-hover:text-emerald-600">
+                              마케팅 정보 수신 동의
+                            </span>
+                            <span className="ml-1 font-semibold text-gray-500">(선택)</span>
                           </div>
                         </label>
                       </div>
@@ -308,9 +377,15 @@ export default function Signup() {
                     <button
                       type="submit"
                       disabled={!canGoStep1}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-green-700 focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                      className="relative w-full py-4 px-6 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 text-white font-bold rounded-2xl hover:shadow-2xl hover:scale-[1.02] focus:ring-4 focus:ring-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 shadow-xl overflow-hidden group"
                     >
-                      다음 단계
+                      <div className="absolute inset-0 transition-opacity duration-300 opacity-0 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700 group-hover:opacity-100"></div>
+                      <span className="relative flex items-center justify-center gap-2">
+                        다음 단계
+                        <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </span>
                     </button>
                   </form>
                 )}
@@ -324,9 +399,9 @@ export default function Signup() {
                     }}
                     className="space-y-6"
                   >
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="space-y-5">
+                      <div className="group">
+                        <label className="block mb-2 text-sm font-semibold text-gray-700 transition-colors group-focus-within:text-emerald-600">
                           아이디
                         </label>
                         <input
@@ -335,12 +410,20 @@ export default function Signup() {
                           value={userId}
                           onChange={(e) => setUserId(e.target.value)}
                           autoComplete="username"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
+                          className="w-full px-5 py-4 text-base transition-all duration-200 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-400 hover:border-gray-300 bg-gray-50/50 focus:bg-white"
                         />
+                        {userId && userId.trim().length < 3 && (
+                          <p className="flex items-center gap-1 mt-2 text-sm text-amber-600">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            3자 이상 입력해주세요
+                          </p>
+                        )}
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="group">
+                        <label className="block mb-2 text-sm font-semibold text-gray-700 transition-colors group-focus-within:text-emerald-600">
                           비밀번호
                         </label>
                         <input
@@ -349,12 +432,20 @@ export default function Signup() {
                           value={pw}
                           onChange={(e) => setPw(e.target.value)}
                           autoComplete="new-password"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
+                          className="w-full px-5 py-4 text-base transition-all duration-200 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-400 hover:border-gray-300 bg-gray-50/50 focus:bg-white"
                         />
+                        {pw && pw.length < 4 && (
+                          <p className="flex items-center gap-1 mt-2 text-sm text-amber-600">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            4자 이상 입력해주세요
+                          </p>
+                        )}
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <div className="group">
+                        <label className="block mb-2 text-sm font-semibold text-gray-700 transition-colors group-focus-within:text-emerald-600">
                           비밀번호 확인
                         </label>
                         <input
@@ -363,28 +454,48 @@ export default function Signup() {
                           value={pwCheck}
                           onChange={(e) => setPwCheck(e.target.value)}
                           autoComplete="new-password"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
+                          className="w-full px-5 py-4 text-base transition-all duration-200 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-400 hover:border-gray-300 bg-gray-50/50 focus:bg-white"
                         />
-                        {pw && pwCheck && pw !== pwCheck && (
-                          <p className="mt-2 text-sm text-red-600">비밀번호가 일치하지 않습니다</p>
+                        {pw && pwCheck && (
+                          pw === pwCheck ? (
+                            <p className="flex items-center gap-1 mt-2 text-sm font-medium text-emerald-600">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              비밀번호가 일치합니다
+                            </p>
+                          ) : (
+                            <p className="flex items-center gap-1 mt-2 text-sm font-medium text-red-600">
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                              </svg>
+                              비밀번호가 일치하지 않습니다
+                            </p>
+                          )
                         )}
                       </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pt-2">
                       <button
                         type="button"
                         onClick={() => setStep(0)}
-                        className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200"
+                        className="flex-1 px-4 py-4 font-semibold text-gray-700 transition-all duration-200 border-2 border-gray-300 rounded-2xl hover:bg-gray-50 hover:border-gray-400"
                       >
                         이전
                       </button>
                       <button
                         type="submit"
                         disabled={!canGoStep2}
-                        className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-green-700 focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                        className="relative flex-1 py-4 px-6 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 text-white font-bold rounded-2xl hover:shadow-2xl hover:scale-[1.02] focus:ring-4 focus:ring-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 shadow-xl overflow-hidden group"
                       >
-                        다음 단계
+                        <div className="absolute inset-0 transition-opacity duration-300 opacity-0 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700 group-hover:opacity-100"></div>
+                        <span className="relative flex items-center justify-center gap-2">
+                          다음 단계
+                          <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                        </span>
                       </button>
                     </div>
                   </form>
@@ -399,53 +510,74 @@ export default function Signup() {
                     }}
                     className="space-y-6"
                   >
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="group">
+                      <label className="block mb-2 text-sm font-semibold text-gray-700 transition-colors group-focus-within:text-emerald-600">
                         이메일 주소
                       </label>
-                      <input
-                        type="email"
-                        placeholder="이메일을 입력하세요"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        autoComplete="email"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
-                      />
+                      <div className="relative">
+                        <input
+                          type="email"
+                          placeholder="이메일을 입력하세요"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          autoComplete="email"
+                          className="w-full px-5 py-4 text-base transition-all duration-200 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-400 hover:border-gray-300 bg-gray-50/50 focus:bg-white"
+                        />
+                        <div className="absolute inset-y-0 flex items-center pointer-events-none right-4">
+                          <svg className="w-5 h-5 text-gray-400 transition-colors group-focus-within:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
 
                     {msg && (
-                      <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-xl">
-                        {msg}
+                      <div className="flex items-center gap-3 p-4 text-sm font-medium border-2 shadow-sm text-emerald-700 bg-emerald-50 border-emerald-200 rounded-2xl">
+                        <svg className="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span>{msg}</span>
                       </div>
                     )}
 
                     {err && (
-                      <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
-                        {err}
+                      <div className="flex items-center gap-3 p-4 text-sm font-medium text-red-700 border-2 border-red-200 shadow-sm bg-red-50 rounded-2xl">
+                        <svg className="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <span>{err}</span>
                       </div>
                     )}
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pt-2">
                       <button
                         type="button"
                         onClick={() => setStep(1)}
-                        className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200"
+                        className="flex-1 px-4 py-4 font-semibold text-gray-700 transition-all duration-200 border-2 border-gray-300 rounded-2xl hover:bg-gray-50 hover:border-gray-400"
                       >
                         이전
                       </button>
                       <button
                         type="submit"
                         disabled={sending || !email.includes("@")}
-                        className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-green-700 focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                        className="relative flex-1 py-4 px-6 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 text-white font-bold rounded-2xl hover:shadow-2xl hover:scale-[1.02] focus:ring-4 focus:ring-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 shadow-xl overflow-hidden group"
                       >
-                        {sending ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            전송 중...
-                          </div>
-                        ) : (
-                          "인증코드 전송"
-                        )}
+                        <div className="absolute inset-0 transition-opacity duration-300 opacity-0 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700 group-hover:opacity-100"></div>
+                        <span className="relative flex items-center justify-center gap-2">
+                          {sending ? (
+                            <>
+                              <div className="w-5 h-5 rounded-full border-3 border-white/30 border-t-white animate-spin"></div>
+                              전송 중...
+                            </>
+                          ) : (
+                            <>
+                              인증코드 전송
+                              <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                            </>
+                          )}
+                        </span>
                       </button>
                     </div>
                   </form>
@@ -460,20 +592,20 @@ export default function Signup() {
                     }}
                     className="space-y-6"
                   >
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="group">
+                      <label className="block mb-2 text-sm font-semibold text-gray-700">
                         이메일 주소
                       </label>
                       <input
                         type="email"
                         value={email}
                         readOnly
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-600"
+                        className="w-full px-5 py-4 text-base font-medium text-gray-600 bg-gray-100 border-2 border-gray-200 rounded-2xl"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <div className="group">
+                      <label className="block mb-2 text-sm font-semibold text-gray-700 transition-colors group-focus-within:text-emerald-600">
                         인증코드
                       </label>
                       <div className="flex gap-3">
@@ -482,27 +614,36 @@ export default function Signup() {
                           placeholder="인증코드 6자리"
                           value={code}
                           onChange={(e) => setCode(e.target.value)}
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 placeholder:text-gray-400"
+                          className="flex-1 px-5 py-4 text-base text-xl font-bold tracking-widest text-center transition-all duration-200 border-2 border-gray-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 placeholder:text-gray-400 hover:border-gray-300 bg-gray-50/50 focus:bg-white"
                           maxLength={6}
                         />
                         <button
                           type="button"
                           onClick={verifyCode}
                           disabled={verifying || !code.trim()}
-                          className="px-6 py-3 bg-gray-100 text-gray-700 font-medium rounded-xl hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                          className="px-8 py-4 font-bold text-gray-700 transition-all duration-200 bg-gray-100 border-2 border-gray-200 rounded-2xl hover:bg-gray-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed hover:border-gray-300"
                         >
-                          {verifying ? "확인중" : "확인"}
+                          {verifying ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 border-2 border-gray-400 rounded-full border-t-gray-700 animate-spin"></div>
+                            </div>
+                          ) : (
+                            "확인"
+                          )}
                         </button>
                       </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <span className="text-sm text-gray-500">
+                      <div className="flex items-center justify-between px-1 mt-3">
+                        <span className={`text-sm font-semibold ${timeLeft < 30 ? 'text-red-600' : 'text-gray-600'}`}>
+                          <svg className="inline w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
                           남은 시간: {formatTime(timeLeft)}
                         </span>
                         <button
                           type="button"
                           onClick={sendCode}
                           disabled={sending}
-                          className="text-sm text-green-600 hover:text-green-700 disabled:opacity-50"
+                          className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-50 hover:underline underline-offset-2"
                         >
                           재전송
                         </button>
@@ -510,59 +651,90 @@ export default function Signup() {
                     </div>
 
                     {verified && (
-                      <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2">
-                        <span className="text-green-600">✓</span>
-                        이메일 인증이 완료되었습니다
+                      <div className="flex items-center gap-3 p-4 text-sm font-medium border-2 shadow-sm text-emerald-700 bg-emerald-50 border-emerald-200 rounded-2xl">
+                        <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500">
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <span>이메일 인증이 완료되었습니다</span>
                       </div>
                     )}
 
                     {msg && !verified && (
-                      <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-xl">
-                        {msg}
+                      <div className="flex items-center gap-3 p-4 text-sm font-medium border-2 shadow-sm text-emerald-700 bg-emerald-50 border-emerald-200 rounded-2xl">
+                        <svg className="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        </svg>
+                        <span>{msg}</span>
                       </div>
                     )}
 
                     {err && (
-                      <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
-                        {err}
+                      <div className="flex items-center gap-3 p-4 text-sm font-medium text-red-700 border-2 border-red-200 shadow-sm bg-red-50 rounded-2xl">
+                        <svg className="flex-shrink-0 w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <span>{err}</span>
                       </div>
                     )}
 
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 pt-2">
                       <button
                         type="button"
                         onClick={() => setStep(2)}
-                        className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200"
+                        className="flex-1 px-4 py-4 font-semibold text-gray-700 transition-all duration-200 border-2 border-gray-300 rounded-2xl hover:bg-gray-50 hover:border-gray-400"
                       >
                         이전
                       </button>
                       <button
                         type="submit"
                         disabled={!verified || signing}
-                        className="flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-green-700 focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+                        className="relative flex-1 py-4 px-6 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 text-white font-bold rounded-2xl hover:shadow-2xl hover:scale-[1.02] focus:ring-4 focus:ring-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-300 shadow-xl overflow-hidden group"
                       >
-                        {signing ? (
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                            가입 중...
-                          </div>
-                        ) : (
-                          "회원가입 완료"
-                        )}
+                        <div className="absolute inset-0 transition-opacity duration-300 opacity-0 bg-gradient-to-r from-emerald-600 via-green-600 to-teal-700 group-hover:opacity-100"></div>
+                        <span className="relative flex items-center justify-center gap-2">
+                          {signing ? (
+                            <>
+                              <div className="w-5 h-5 rounded-full border-3 border-white/30 border-t-white animate-spin"></div>
+                              가입 중...
+                            </>
+                          ) : (
+                            <>
+                              회원가입 완료
+                              <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </>
+                          )}
+                        </span>
                       </button>
                     </div>
                   </form>
                 )}
 
                 {/* 하단 링크 */}
-                <div className="pt-6 text-center">
-                  <span className="text-gray-500 text-sm">이미 계정이 있으신가요? </span>
-                  <Link 
-                    to="/login" 
-                    className="text-green-600 font-semibold hover:text-green-700 transition-colors"
-                  >
-                    로그인
-                  </Link>
+                <div className="pt-8 text-center">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-4 text-gray-500 bg-white">또는</span>
+                    </div>
+                  </div>
+                  <div className="p-4 transition-all duration-200 border-gray-200 border-dashed rounded-2xl">
+                    <span className="text-sm text-gray-600">이미 계정이 있으신가요? </span>
+                    <Link 
+                      to="/login" 
+                      className="inline-flex items-center gap-1 text-sm font-bold transition-all text-emerald-600 hover:text-emerald-700 hover:gap-2"
+                    >
+                      로그인
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

@@ -8,15 +8,12 @@ const SERVER = (import.meta.env.VITE_SERVER_URL as string) || "http://localhost:
 const withServer = (src?: string | null) =>
   src ? (src.startsWith("http") ? src : `${SERVER}${src}`) : null;
 
-type TabType = "all" | "selling" | "sold";
-
 export default function MyPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabType>("all");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -69,18 +66,9 @@ export default function MyPage() {
     };
   }, [user, authLoading, navigate]);
 
-  // 탭별 필터링
-  const filteredProducts =
-    activeTab === "all"
-      ? products
-      : activeTab === "selling"
-      ? products.filter((p) => p.status === "selling")
-      : products.filter((p) => p.status === "sold");
-
   // 통계 계산
   const stats = {
     total: products.length,
-    sold: products.filter((p) => p.status === "sold").length,
     reviews: 1, // 임시값 (거래후기는 추후 구현)
   };
 
@@ -97,9 +85,14 @@ export default function MyPage() {
       if (!res.ok || data.ok === false)
         throw new Error(data.error || "변경 실패");
 
-      setProducts((prev) =>
-        prev.map((p) => (p._id === id ? { ...p, status } : p))
-      );
+      // 판매완료로 변경 시 제품이 삭제되었으면 목록에서 제거
+      if (status === "sold" && data.deleted) {
+        setProducts((prev) => prev.filter((p) => p._id !== id));
+      } else {
+        setProducts((prev) =>
+          prev.map((p) => (p._id === id ? { ...p, status } : p))
+        );
+      }
       setOpenMenuId(null);
     } catch (e: any) {
       alert(e.message || "변경에 실패했습니다.");
@@ -183,14 +176,10 @@ export default function MyPage() {
 
         {/* 통계 카드 */}
         <div className="p-6 card">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="mt-1 text-sm text-gray-600">상품 수</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{stats.sold}</div>
-              <div className="mt-1 text-sm text-gray-600">판매횟수</div>
+              <div className="mt-1 text-sm text-gray-600">등록한 상품</div>
             </div>
             <div>
               <div className="text-2xl font-bold">{stats.reviews}</div>
@@ -200,39 +189,14 @@ export default function MyPage() {
         </div>
       </div>
 
-      {/* 탭 */}
-      <div className="flex gap-6 mb-6 border-b border-gray-200">
-        {[
-          { id: "all" as TabType, label: "전체" },
-          { id: "selling" as TabType, label: "판매중" },
-          { id: "sold" as TabType, label: "판매완료" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`pb-3 px-1 text-sm font-medium transition ${
-              activeTab === tab.id
-                ? "text-neutral-900 border-b-2 border-neutral-900"
-                : "text-gray-600 hover:text-neutral-900"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* 상품 그리드 */}
-      {filteredProducts.length === 0 ? (
+      {products.length === 0 ? (
         <div className="py-20 text-center text-gray-500">
-          {activeTab === "all"
-            ? "등록한 상품이 없습니다."
-            : activeTab === "selling"
-            ? "판매중인 상품이 없습니다."
-            : "판매완료된 상품이 없습니다."}
+          등록한 상품이 없습니다.
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {filteredProducts.map((product) => {
+          {products.map((product) => {
             const firstImage = product.images?.[0];
             const imageSrc = firstImage
               ? firstImage.startsWith("http")
@@ -313,20 +277,12 @@ export default function MyPage() {
                     style={{ top: "100%" }}
                   >
                     {product.status === "selling" ? (
-                      <>
-                        <button
-                          onClick={() => updateStatus(product._id, "reserved")}
-                          className="block w-full px-4 py-2 text-sm text-left hover:bg-gray-50 first:rounded-t-lg"
-                        >
-                          예약중으로 변경
-                        </button>
-                        <button
-                          onClick={() => updateStatus(product._id, "sold")}
-                          className="block w-full px-4 py-2 text-sm text-left hover:bg-gray-50"
-                        >
-                          판매완료
-                        </button>
-                      </>
+                      <button
+                        onClick={() => updateStatus(product._id, "sold")}
+                        className="block w-full px-4 py-2 text-sm text-left hover:bg-gray-50 first:rounded-t-lg"
+                      >
+                        판매완료
+                      </button>
                     ) : product.status === "reserved" ? (
                       <>
                         <button

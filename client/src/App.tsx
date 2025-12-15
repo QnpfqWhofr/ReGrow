@@ -22,6 +22,7 @@ import ChatPage from "./pages/Chat";
 import UserProfile from "./pages/UserProfile";
 import FindId from "./pages/FindId";
 import FindPassword from "./pages/FindPassword";
+import Shop from "./pages/Shop";
 import { GameProvider } from "./context/GameContext";
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/find-password" element={<FindPassword />} />
             <Route path="/sell" element={<ProductNew />} />
             <Route path="/game" element={<Game />} />
+            <Route path="/shop" element={<Shop />} />
             <Route path="/mypage" element={<MyPage />} />
             <Route path="/profile/edit" element={<ProfileEdit />} />
             <Route path="/user/edit" element={<UserInfoEdit />} />

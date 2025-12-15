@@ -6,6 +6,17 @@ import { useAuth } from "../context/AuthContext";
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || "/api";
 const SERVER = (import.meta.env.VITE_SERVER_URL as string) || "http://localhost:4000";
 
+// 안전한 JSON 파싱 헬퍼 함수
+async function safeJsonParse(response: Response) {
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("JSON 파싱 실패:", text);
+    throw new Error("서버 응답을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.");
+  }
+}
+
 type ChatUser = {
   id: string;
   userId?: string;
@@ -77,7 +88,7 @@ export default function ChatPage() {
         const res = await fetch(`${API_BASE}/products/${productId}`, {
           credentials: "include",
         });
-        const json = await res.json();
+        const json = await safeJsonParse(res);
         if (!res.ok || json.ok === false) throw new Error(json.error || "불러오기 실패");
         if (!alive) return;
         setProduct(json.product);
@@ -98,7 +109,7 @@ export default function ChatPage() {
       const res = await fetch(`${API_BASE}/chat/rooms?productId=${productId}`, {
         credentials: "include",
       });
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (res.ok && data.ok !== false && Array.isArray(data.rooms)) {
         setRooms(data.rooms);
       }
@@ -121,7 +132,7 @@ export default function ChatPage() {
           buyerId: buyerHint,
         }),
       });
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (!res.ok || data.ok === false) throw new Error(data.error || "채팅을 열 수 없습니다.");
       setRoom(data.room);
       loadRooms();
@@ -145,7 +156,7 @@ export default function ChatPage() {
         const res = await fetch(`${API_BASE}/chat/room/${targetRoomId}`, {
           credentials: "include",
         });
-        const data = await res.json();
+        const data = await safeJsonParse(res);
         if (res.ok && data.ok !== false) {
           setRoom(data.room);
         }
@@ -174,7 +185,7 @@ export default function ChatPage() {
         credentials: "include",
         body: JSON.stringify({ text }),
       });
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (!res.ok || data.ok === false) throw new Error(data.error || "전송에 실패했습니다.");
       setRoom((prev) => data.room ?? prev);
     } catch (e: any) {
@@ -264,7 +275,7 @@ export default function ChatPage() {
           buyerId: targetBuyerId,
         }),
       });
-      const data = await res.json();
+      const data = await safeJsonParse(res);
       if (!res.ok || data.ok === false) throw new Error(data.error || "채팅을 열 수 없습니다.");
       setRoom(data.room);
     } catch (e: any) {

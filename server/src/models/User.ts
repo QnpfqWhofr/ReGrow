@@ -11,10 +11,14 @@ const UserSchema = new Schema(
     // 게임 정보
     gameCoins: { type: Number, default: 200 },
     gameLevel: { type: Number, default: 1 },
-    gameProgressPct: { type: Number, default: 0 },
+    gameProgressPct: { type: Number, default: 0 }, // 호환성을 위해 유지 (0-100%)
+    gameProgressPoints: { type: Number, default: 0 }, // 실제 진행도 포인트
     gameLastCollectAt: { type: Date, default: null },
     gameLevelUpRewardPending: { type: Boolean, default: false }, // 레벨업 보상 대기 중
     gameTreesGrown: { type: Number, default: 0 }, // 키운 나무 수
+    gameWaterCans: { type: Number, default: 3 }, // 물뿌리개 개수
+    gameFertilizers: { type: Number, default: 2 }, // 비료 개수
+    gameGrowthBoosters: { type: Number, default: 0 }, // 성장촉진제 개수
     recentlyViewedProducts: {
       type: [{ type: Schema.Types.ObjectId, ref: "Product" }],
       default: [],

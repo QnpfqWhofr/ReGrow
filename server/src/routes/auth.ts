@@ -317,11 +317,22 @@ router.get("/me", async (req, res) => {
       gameCoins: user.gameCoins ?? 200,
       gameLevel: user.gameLevel ?? 1,
       gameProgressPct: user.gameProgressPct ?? 0,
+      gameProgressPoints: (() => {
+        const points = (user as any).gameProgressPoints;
+        if (points !== undefined && points !== null) return points;
+        // progressPoints가 없으면 progressPct 기반으로 계산
+        const level = user.gameLevel ?? 1;
+        const pct = user.gameProgressPct ?? 0;
+        return Math.floor((pct / 100) * (level * 100));
+      })(),
       gameLastCollectAt: user.gameLastCollectAt
         ? new Date(user.gameLastCollectAt).getTime()
         : null,
       gameLevelUpRewardPending: (user as any).gameLevelUpRewardPending ?? false,
       gameTreesGrown: (user as any).gameTreesGrown ?? 0,
+      gameWaterCans: (user as any).gameWaterCans ?? 3,
+      gameFertilizers: (user as any).gameFertilizers ?? 2,
+      gameGrowthBoosters: (user as any).gameGrowthBoosters ?? 0,
     },
   });
 });
@@ -335,8 +346,12 @@ router.patch("/game", async (req, res) => {
     coins: z.number().int().min(0).optional(),
     level: z.number().int().min(1).optional(),
     progressPct: z.number().min(0).max(100).optional(),
+    progressPoints: z.number().int().min(0).optional(),
     lastCollectAt: z.number().nullable().optional(),
     treesGrown: z.number().int().min(0).optional(),
+    waterCans: z.number().int().min(0).optional(),
+    fertilizers: z.number().int().min(0).optional(),
+    growthBoosters: z.number().int().min(0).optional(),
   });
 
   const parsed = Body.safeParse(req.body);
@@ -370,6 +385,9 @@ router.patch("/game", async (req, res) => {
   if (parsed.data.progressPct !== undefined && user.gameLevel < 4) {
     user.gameProgressPct = parsed.data.progressPct;
   }
+  if (parsed.data.progressPoints !== undefined) {
+    (user as any).gameProgressPoints = parsed.data.progressPoints;
+  }
   if (parsed.data.lastCollectAt !== undefined) {
     user.gameLastCollectAt = parsed.data.lastCollectAt
       ? new Date(parsed.data.lastCollectAt)
@@ -377,6 +395,15 @@ router.patch("/game", async (req, res) => {
   }
   if (parsed.data.treesGrown !== undefined) {
     (user as any).gameTreesGrown = parsed.data.treesGrown;
+  }
+  if (parsed.data.waterCans !== undefined) {
+    (user as any).gameWaterCans = parsed.data.waterCans;
+  }
+  if (parsed.data.fertilizers !== undefined) {
+    (user as any).gameFertilizers = parsed.data.fertilizers;
+  }
+  if (parsed.data.growthBoosters !== undefined) {
+    (user as any).gameGrowthBoosters = parsed.data.growthBoosters;
   }
 
   await user.save();
@@ -387,10 +414,14 @@ router.patch("/game", async (req, res) => {
       coins: user.gameCoins,
       level: user.gameLevel,
       progressPct: user.gameProgressPct,
+      progressPoints: (user as any).gameProgressPoints || 0,
       lastCollectAt: user.gameLastCollectAt
         ? new Date(user.gameLastCollectAt).getTime()
         : null,
       treesGrown: (user as any).gameTreesGrown || 0,
+      waterCans: (user as any).gameWaterCans || 0,
+      fertilizers: (user as any).gameFertilizers || 0,
+      growthBoosters: (user as any).gameGrowthBoosters || 0,
     },
   });
 });
@@ -682,6 +713,69 @@ router.post("/find-password/reset", limiter, async (req, res) => {
     const msg = e?.message || "Failed to reset password";
     return res.status(400).json({ ok: false, error: msg });
   }
+});
+
+/** 게임 상점 - 아이템 구매 */
+router.post("/shop/buy", async (req, res) => {
+  const u = readUserFromReq(req);
+  if (!u) return res.status(401).json({ ok: false, error: "unauthorized" });
+
+  const Body = z.object({
+    item: z.enum(["waterCan", "fertilizer", "growthBooster"]),
+    quantity: z.number().int().min(1).max(10),
+  });
+
+  const parsed = Body.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ ok: false, error: parsed.error.message });
+  }
+
+  const user = await User.findById(u.id);
+  if (!user) return res.status(404).json({ ok: false, error: "user_not_found" });
+
+  const { item, quantity } = parsed.data;
+  
+  // 아이템 가격 정의
+  const prices = {
+    waterCan: 25,
+    fertilizer: 50,
+    growthBooster: 100,
+  };
+
+  const totalCost = prices[item] * quantity;
+  
+  // 코인 부족 체크
+  if ((user.gameCoins || 0) < totalCost) {
+    return res.status(400).json({ ok: false, error: "코인이 부족합니다." });
+  }
+
+  // 코인 차감 및 아이템 추가
+  user.gameCoins = (user.gameCoins || 0) - totalCost;
+  
+  if (item === "waterCan") {
+    (user as any).gameWaterCans = ((user as any).gameWaterCans || 0) + quantity;
+  } else if (item === "fertilizer") {
+    (user as any).gameFertilizers = ((user as any).gameFertilizers || 0) + quantity;
+  } else if (item === "growthBooster") {
+    (user as any).gameGrowthBoosters = ((user as any).gameGrowthBoosters || 0) + quantity;
+  }
+
+  await user.save();
+
+  return res.json({
+    ok: true,
+    purchase: {
+      item,
+      quantity,
+      cost: totalCost,
+      remainingCoins: user.gameCoins,
+    },
+    items: {
+      waterCans: (user as any).gameWaterCans || 0,
+      fertilizers: (user as any).gameFertilizers || 0,
+      growthBoosters: (user as any).gameGrowthBoosters || 0,
+    },
+  });
 });
 
 /** 다른 사용자 정보 조회 */

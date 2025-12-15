@@ -111,7 +111,7 @@ export default function UserProfile() {
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{user.userId}</h2>
               <p className="mt-1 text-sm text-gray-600">{user.location || "대구광역시 수성구 범어동"}</p>
-              <div className="flex items-center gap-2 mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 p-3 mt-4 border border-green-200 rounded-lg bg-green-50">
                 <span className="text-green-600">🌳</span>
                 <div>
                   <div className="text-sm font-medium text-green-700">
@@ -131,14 +131,14 @@ export default function UserProfile() {
           <div className="grid grid-cols-2 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="mt-1 text-sm text-gray-600">판매중인 상품</div>
+              <div className="mt-1 text-sm text-gray-600">등록한 상품</div>
             </div>
             <div>
               <div className="text-2xl font-bold">{stats.treesGrown}</div>
               <div className="mt-1 text-sm text-gray-600">키운 나무</div>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="pt-4 mt-4 border-t border-gray-200">
             <div className="text-center">
               <div className="text-sm text-gray-600">가입일</div>
               <div className="text-sm font-medium">{stats.joinDate}</div>
@@ -150,7 +150,7 @@ export default function UserProfile() {
       {/* 상품 목록 제목 */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold">
-          {user.userId}님의 판매중인 상품 ({products.length})
+          {user.userId}님의 상품 ({products.length})
         </h3>
       </div>
 

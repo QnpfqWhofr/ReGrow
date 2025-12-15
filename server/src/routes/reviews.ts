@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
+import fs from "fs/promises";
+import path from "path";
 import Review from "../models/Review";
 import User from "../models/User";
 import Product from "../models/Product";
@@ -168,6 +170,26 @@ router.post("/:id/complete", async (req, res) => {
     // 거래 완료 처리
     review.transactionCompleted = true;
     await review.save();
+
+    // 제품 삭제 (이미지 파일도 함께 삭제)
+    const productToDelete = await Product.findById(product._id);
+    if (productToDelete && productToDelete.images) {
+      // 이미지 파일 삭제
+      for (const img of productToDelete.images) {
+        if (img.startsWith("/uploads/")) {
+          try {
+            const filePath = path.join(process.cwd(), img);
+            await fs.unlink(filePath);
+            console.log(`[DELETE] Image deleted: ${filePath}`);
+          } catch (err: any) {
+            console.error(`[DELETE] Failed to delete image ${img}:`, err.message);
+          }
+        }
+      }
+    }
+    
+    // 제품 삭제
+    await Product.findByIdAndDelete(product._id);
 
     // 게임 프로그레스 업데이트 (별점 기반) - 구매자와 판매자 모두
     const progressIncrease = 25 * (review.rating / 5); // 5점 만점 기준 백분율

@@ -440,13 +440,15 @@ router.patch("/:id", async (req, res) => {
     return res.status(403).json({ ok: false, error: "forbidden" });
   }
 
-  // 상태가 sold로 변경되면 soldAt 설정
+  // 상태가 sold로 변경되면 제품 삭제
   if (parsed.data.status === "sold" && item.status !== "sold") {
-    (item as any).soldAt = new Date();
-  }
-  // 상태가 sold에서 다른 상태로 변경되면 soldAt 초기화
-  if (parsed.data.status && parsed.data.status !== "sold" && item.status === "sold") {
-    (item as any).soldAt = null;
+    // 이미지 파일 삭제
+    await deleteProductImages(item.images || []);
+    
+    // 제품 삭제
+    await Product.findByIdAndDelete(req.params.id);
+    
+    return res.json({ ok: true, deleted: true });
   }
 
   Object.assign(item, parsed.data);

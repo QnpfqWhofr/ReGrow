@@ -133,7 +133,7 @@ export default function ReviewSection({ productId, isSeller = false }: ReviewSec
   };
 
   const handleCompleteTransaction = async (reviewId: string) => {
-    if (!confirm("거래를 완료하시겠습니까? 게임 프로그레스가 증가합니다.")) return;
+    if (!confirm("거래를 완료하시겠습니까?")) return;
 
     try {
       const res = await fetch(`${API_BASE}/reviews/${reviewId}/complete`, {
@@ -154,7 +154,7 @@ export default function ReviewSection({ productId, isSeller = false }: ReviewSec
 
       if (data.gameProgress) {
         alert(
-          `거래가 완료되었습니다!\n\n[판매자]\n프로그레스: ${data.gameProgress.seller.progressPct.toFixed(1)}%\n레벨: ${data.gameProgress.seller.level}\n코인: ${data.gameProgress.seller.coins}\n\n[구매자]\n프로그레스: ${data.gameProgress.buyer.progressPct.toFixed(1)}%\n레벨: ${data.gameProgress.buyer.level}\n코인: ${data.gameProgress.buyer.coins}`
+          `거래가 완료되었습니다!`
         );
       }
     } catch (e: any) {

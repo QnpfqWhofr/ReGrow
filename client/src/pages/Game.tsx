@@ -1,6 +1,5 @@
 import { useGame } from "../context/GameContext";
 import { useAuth } from "../context/AuthContext";
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import TreeLv1 from "../assets/tree1lv.png";
 import TreeLv2 from "../assets/tree2lv.png";
@@ -14,12 +13,22 @@ export default function Game() {
 		coins,
 		level,
 		progressPct,
+		progressPoints,
 		treesGrown,
+		waterCans,
+		fertilizers,
+		growthBoosters,
 		waterTree,
 		fertilizeTree,
+		useGrowthBooster,
 		showCongratulations,
 		dismissCongratulations,
 	} = useGame();
+
+	// 레벨별 필요 포인트 계산
+	const getRequiredPoints = (level: number) => (level || 1) * 100;
+	const requiredPoints = getRequiredPoints(level);
+	const safeProgressPoints = progressPoints || 0;
 
 	const handleWaterTree = () => {
 		if (!user) {
@@ -39,6 +48,16 @@ export default function Game() {
 			return;
 		}
 		fertilizeTree();
+	};
+
+	const handleUseGrowthBooster = () => {
+		if (!user) {
+			if (confirm("로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+				navigate("/login", { state: { from: "/game" } });
+			}
+			return;
+		}
+		useGrowthBooster();
 	};
 
 	const getTreeImage = () => {
@@ -112,6 +131,9 @@ export default function Game() {
 						<div className="h-full bg-green-500" style={{ width: `${progressPct}%` }} />
 					</div>
 					<div className="mt-2 text-xs text-gray-600">
+						진행도: {safeProgressPoints}/{requiredPoints}
+					</div>
+					<div className="text-xs text-gray-600">
 						🌳 키운 나무: {treesGrown}그루
 					</div>
 					<button className="w-full btn btn-primary" onClick={() => navigate("/")}>거래하러 가기</button>
@@ -145,36 +167,73 @@ export default function Game() {
 					<div className="flex items-center justify-between p-6 card">
 						<div className="flex items-center gap-2">
 							<span className="text-yellow-500">⦿</span>
-							<div className="text-gray-600">보유 머니</div>
+							<div className="text-gray-600">보유 코인</div>
 						</div>
-						<div className="text-xl font-extrabold">{coins.toLocaleString()} 머니</div>
+						<div className="text-xl font-extrabold">{coins.toLocaleString()} 코인</div>
 					</div>
+					
+					{/* 상점 버튼 */}
+					<button
+						className="w-full p-4 text-center text-white transition-all duration-200 card hover:shadow-md bg-gradient-to-r from-emerald-500 to-green-500"
+						onClick={() => navigate("/shop")}
+					>
+						<div className="mb-2 text-2xl">🏪</div>
+						<div className="font-semibold">상점</div>
+						<div className="text-xs opacity-90">아이템 구매하기</div>
+					</button>
+
 					<div className="grid grid-cols-2 gap-4">
 						<button
-							className={`p-6 text-center card hover:shadow-md ${
-								!user ? "opacity-50 cursor-not-allowed" : ""
+							className={`p-6 text-center card hover:shadow-md transition-all ${
+								!user || waterCans <= 0 
+									? "opacity-50 cursor-not-allowed bg-gray-100" 
+									: "hover:bg-blue-50"
 							}`}
 							onClick={handleWaterTree}
-							disabled={!user}
-							title={!user ? "로그인이 필요합니다" : ""}
+							disabled={!user || waterCans <= 0}
+							title={!user ? "로그인이 필요합니다" : waterCans <= 0 ? "물뿌리개가 없습니다" : ""}
 						>
 							<div className="text-2xl">💧</div>
 							<div className="mt-2 font-semibold">물 주기</div>
-							<div className="mt-1 text-xs text-gray-500">5 머니 / 성장 +10%</div>
+							<div className="mt-1 text-xs text-gray-500">
+								보유: {waterCans}개 / 성장 +15
+							</div>
 						</button>
 						<button
-							className={`p-6 text-center card hover:shadow-md ${
-								!user ? "opacity-50 cursor-not-allowed" : ""
+							className={`p-6 text-center card hover:shadow-md transition-all ${
+								!user || fertilizers <= 0 
+									? "opacity-50 cursor-not-allowed bg-gray-100" 
+									: "hover:bg-green-50"
 							}`}
 							onClick={handleFertilizeTree}
-							disabled={!user}
-							title={!user ? "로그인이 필요합니다" : ""}
+							disabled={!user || fertilizers <= 0}
+							title={!user ? "로그인이 필요합니다" : fertilizers <= 0 ? "비료가 없습니다" : ""}
 						>
 							<div className="text-2xl">🌱</div>
 							<div className="mt-2 font-semibold">비료</div>
-							<div className="mt-1 text-xs text-gray-500">10 머니 / 성장 +20%</div>
+							<div className="mt-1 text-xs text-gray-500">
+								보유: {fertilizers}개 / 성장 +30
+							</div>
 						</button>
 					</div>
+
+					{/* 성장촉진제 버튼 */}
+					<button
+						className={`w-full p-6 text-center card hover:shadow-md transition-all ${
+							!user || growthBoosters <= 0 
+								? "opacity-50 cursor-not-allowed bg-gray-100" 
+								: "hover:bg-purple-50 border-purple-200"
+						}`}
+						onClick={handleUseGrowthBooster}
+						disabled={!user || growthBoosters <= 0}
+						title={!user ? "로그인이 필요합니다" : growthBoosters <= 0 ? "성장촉진제가 없습니다" : ""}
+					>
+						<div className="text-2xl">⚡</div>
+						<div className="mt-2 font-semibold">성장촉진제</div>
+						<div className="mt-1 text-xs text-gray-500">
+							보유: {growthBoosters}개 / 성장 +50
+						</div>
+					</button>
 				</section>
 			</div>
 		</div>

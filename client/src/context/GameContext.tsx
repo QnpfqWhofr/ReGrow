@@ -4,15 +4,20 @@ import { useAuth } from "./AuthContext";
 type GameState = {
 	coins: number;
 	level: number;
-	progressPct: number; // 0~100
+	progressPct: number; // 0~100 (표시용)
+	progressPoints: number; // 실제 진행도 포인트
 	lastCollectAt: number | null;
 	treesGrown: number;
+	waterCans: number;
+	fertilizers: number;
+	growthBoosters: number;
 };
 
 type GameContextValue = GameState & {
 	addCoins: (amount: number) => void;
 	waterTree: () => void;
 	fertilizeTree: () => void;
+	useGrowthBooster: () => void;
 	reset: () => void;
 	loading: boolean;
 	showCongratulations: boolean;
@@ -24,9 +29,22 @@ const GameContext = createContext<GameContextValue | null>(null);
 const STORAGE_KEY = "regrow.game.v1";
 const API_BASE = (import.meta.env.VITE_API_BASE as string) || "/api";
 
+// 레벨별 필요 포인트 계산
+function getRequiredPoints(level: number): number {
+	return level * 100; // 레벨 1: 100, 레벨 2: 200, 레벨 3: 300
+}
+
+// 진행도 퍼센트 계산
+function calculateProgressPct(points: number, level: number): number {
+	const safePoints = points || 0; // NaN 방지
+	const safeLevel = level || 1; // NaN 방지
+	const safeRequired = getRequiredPoints(safeLevel);
+	return Math.min(100, (safePoints / safeRequired) * 100);
+}
+
 function loadInitial(): GameState {
 	// 비로그인 시 항상 기본값 반환 (로컬 스토리지 무시)
-	return { coins: 0, level: 1, progressPct: 0, lastCollectAt: null, treesGrown: 0 };
+	return { coins: 0, level: 1, progressPct: 0, progressPoints: 0, lastCollectAt: null, treesGrown: 0, waterCans: 0, fertilizers: 0, growthBoosters: 0 };
 }
 
 function persist(state: GameState) {
@@ -42,12 +60,26 @@ async function fetchGameFromServer(): Promise<GameState | null> {
 		});
 		const data = await res.json();
 		if (res.ok && data.ok && data.user) {
+			const level = data.user.gameLevel ?? 1;
+			const progressPct = data.user.gameProgressPct ?? 0;
+			let progressPoints = data.user.gameProgressPoints ?? 0;
+			
+			// progressPoints가 없으면 progressPct를 기반으로 계산
+			if (progressPoints === 0 && progressPct > 0) {
+				const required = getRequiredPoints(level);
+				progressPoints = Math.floor((progressPct / 100) * required);
+			}
+			
 			return {
 				coins: data.user.gameCoins ?? 200,
-				level: data.user.gameLevel ?? 1,
-				progressPct: data.user.gameProgressPct ?? 0,
+				level,
+				progressPct,
+				progressPoints,
 				lastCollectAt: data.user.gameLastCollectAt ?? null,
 				treesGrown: data.user.gameTreesGrown ?? 0,
+				waterCans: data.user.gameWaterCans ?? 3,
+				fertilizers: data.user.gameFertilizers ?? 2,
+				growthBoosters: data.user.gameGrowthBoosters ?? 0,
 			};
 		}
 	} catch {}
@@ -64,8 +96,12 @@ async function saveGameToServer(state: GameState): Promise<boolean> {
 				coins: state.coins,
 				level: state.level,
 				progressPct: state.progressPct,
+				progressPoints: state.progressPoints,
 				lastCollectAt: state.lastCollectAt,
 				treesGrown: state.treesGrown,
+				waterCans: state.waterCans,
+				fertilizers: state.fertilizers,
+				growthBoosters: state.growthBoosters,
 			}),
 		});
 		const data = await res.json();
@@ -98,7 +134,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 				setLoading(false);
 			} else {
 				// 비로그인: 항상 기본값 (레벨 1, 프로그레스 0, 코인 0)
-				const defaultState = { coins: 0, level: 1, progressPct: 0, lastCollectAt: null, treesGrown: 0 };
+				const defaultState = { coins: 0, level: 1, progressPct: 0, progressPoints: 0, lastCollectAt: null, treesGrown: 0, waterCans: 0, fertilizers: 0, growthBoosters: 0 };
 				setState(defaultState);
 				setLoading(false);
 			}
@@ -126,51 +162,71 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 		setState((prev) => ({ ...prev, coins: Math.max(0, prev.coins + amount) }));
 	}, []);
 
-	const gainProgress = useCallback((amountPct: number) => {
+	const gainProgress = useCallback((points: number) => {
 		setState((prev) => {
-			const nextPct = Math.min(100, prev.progressPct + amountPct);
-			let level = prev.level;
-			let progressPct = nextPct;
-			let treesGrown = prev.treesGrown;
+			let level = prev.level || 1;
+			let progressPoints = (prev.progressPoints || 0) + (points || 0);
+			let progressPct = calculateProgressPct(progressPoints, level);
+			let treesGrown = prev.treesGrown || 0;
+			let coins = prev.coins || 0;
 			
-			if (nextPct >= 100) {
-				level = prev.level + 1;
-				progressPct = 0;
+			// 레벨업 체크
+			while (progressPoints >= getRequiredPoints(level)) {
+				progressPoints -= getRequiredPoints(level);
+				level += 1;
 				
 				// 레벨 4 달성 시 축하 팝업 표시 및 리셋
 				if (level >= 4) {
 					setShowCongratulations(true);
 					treesGrown = prev.treesGrown + 1;
+					coins = prev.coins + 500; // 나무 완성 보상 500 코인
 					level = 1;
-					progressPct = 0;
+					progressPoints = 0;
+					break;
+				} else {
+					// 일반 레벨업 보상
+					coins = prev.coins + (level - 1) * 100;
 				}
 			}
-			return { ...prev, level, progressPct, treesGrown };
+			
+			// 최종 퍼센트 계산
+			progressPct = calculateProgressPct(progressPoints, level);
+			
+			return { ...prev, level, progressPct, progressPoints, treesGrown, coins };
 		});
 	}, []);
 
 
 
 	const waterTree = useCallback(() => {
-		if (state.coins < 5) {
-			alert("코인이 부족합니다.");
+		if (state.waterCans <= 0) {
+			alert("물뿌리개가 부족합니다. 상점에서 구매해주세요.");
 			return;
 		}
-		addCoins(-5);
-		gainProgress(10);
-	}, [state.coins, addCoins, gainProgress]);
+		setState(prev => ({ ...prev, waterCans: prev.waterCans - 1 }));
+		gainProgress(15); // 15 포인트
+	}, [state.waterCans, gainProgress]);
 
 	const fertilizeTree = useCallback(() => {
-		if (state.coins < 10) {
-			alert("코인이 부족합니다.");
+		if (state.fertilizers <= 0) {
+			alert("비료가 부족합니다. 상점에서 구매해주세요.");
 			return;
 		}
-		addCoins(-10);
-		gainProgress(20);
-	}, [state.coins, addCoins, gainProgress]);
+		setState(prev => ({ ...prev, fertilizers: prev.fertilizers - 1 }));
+		gainProgress(30); // 30 포인트
+	}, [state.fertilizers, gainProgress]);
+
+	const useGrowthBooster = useCallback(() => {
+		if (state.growthBoosters <= 0) {
+			alert("성장촉진제가 부족합니다. 상점에서 구매해주세요.");
+			return;
+		}
+		setState(prev => ({ ...prev, growthBoosters: prev.growthBoosters - 1 }));
+		gainProgress(50); // 50 포인트
+	}, [state.growthBoosters, gainProgress]);
 
 	const reset = useCallback(() => {
-		const next = { coins: 200, level: 1, progressPct: 0, lastCollectAt: null, treesGrown: 0 };
+		const next = { coins: 200, level: 1, progressPct: 0, progressPoints: 0, lastCollectAt: null, treesGrown: 0, waterCans: 3, fertilizers: 2, growthBoosters: 0 };
 		setState(next);
 		persist(next);
 	}, []);
@@ -196,12 +252,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 			addCoins,
 			waterTree,
 			fertilizeTree,
+			useGrowthBooster,
 			reset,
 			loading,
 			showCongratulations,
 			dismissCongratulations,
 		}),
-		[state, addCoins, waterTree, fertilizeTree, reset, loading, showCongratulations, dismissCongratulations]
+		[state, addCoins, waterTree, fertilizeTree, useGrowthBooster, reset, loading, showCongratulations, dismissCongratulations]
 	);
 
 	return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

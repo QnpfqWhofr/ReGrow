@@ -398,7 +398,7 @@ export default function ListingDetail() {
 
         {/* 사이드바 */}
         <div className="hidden w-full h-full lg:block xl:col-auto">
-        <DetailSidebar product={product} />
+        <DetailSidebar product={product as any} />
         </div>
       </div>
 
